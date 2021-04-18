@@ -53,19 +53,18 @@ def parse_homework_status(homework):
 
 def get_homework_statuses(current_timestamp):
     '''Check for status updates from a specified time.'''
-    homework_statuses = requests.get(
-        API_URL,
-        headers={
-            'Authorization': f'OAuth {PRAKTIKUM_TOKEN}',
-        },
-        params={
-            'from_date': current_timestamp,
-        },
-    )
     try:
-        homework_statuses.raise_for_status()
+        homework_statuses = requests.get(
+            API_URL,
+            headers={
+                'Authorization': f'OAuth {PRAKTIKUM_TOKEN}',
+            },
+            params={
+                'from_date': current_timestamp,
+            },
+        )
         return homework_statuses.json()
-    except requests.exceptions.HTTPError as error:
+    except Exception as error:
         logger.error(f'I tried, but it turned out only this: {error}')
 
 
