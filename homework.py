@@ -35,16 +35,19 @@ logger.addHandler(_handler)
 
 def parse_homework_status(homework):
     '''Check the status and generate an appropriate message.'''
-    homework_name = homework['homework_name']
-    if homework['status'] == 'reviewing':
+    homework_name = homework.get('homework_name')
+    homework_status = homework.get('status')
+    if homework_status == 'reviewing':
         verdict = 'Но не до конца.'
-    elif homework['status'] == 'rejected':
+    elif homework_status == 'rejected':
         verdict = 'К сожалению в работе нашлись ошибки.'
-    else:
+    elif homework_status == 'approved':
         verdict = (
             'Ревьюеру всё понравилось, '
             'можно приступать к следующему уроку.'
         )
+    else:
+        verdict = 'Но я не смог разобрать ответ.'
     return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
 
 
@@ -59,7 +62,11 @@ def get_homework_statuses(current_timestamp):
             'from_date': current_timestamp,
         },
     )
-    return homework_statuses.json()
+    try:
+        homework_statuses.raise_for_status()
+        return homework_statuses.json()
+    except requests.exceptions.HTTPError as error:
+        logger.error(f'I tried, but it turned out only this: {error}')
 
 
 def send_message(message, bot_client):
@@ -96,8 +103,7 @@ def main():
             time.sleep(1000)
 
         except Exception as e:
-            print(f'Бот столкнулся с ошибкой: {e}')
-            logger.error('something went wrong')
+            logger.error(f'something went wrong: {e}')
             time.sleep(5)
 
 
